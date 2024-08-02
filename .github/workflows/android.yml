@@ -27,8 +27,10 @@ jobs:
       run: chmod +x gradlew
     - run : echo "Building apk"
     - name: Build with Gradle
-      run: ./gradlew build
+      run: ./gradlew assembleRelease
     - run: echo "Build status - ${{job.status}}"
+
+    
 
     - name: Sign APK
       id: sign_apk
@@ -39,8 +41,10 @@ jobs:
         alias: ${{ secrets.SIGNING_ALIAS }}
         keyStorePassword: ${{ secrets.SIGNING_KEYSTORE_PASSWORD }}
         keyPassword: ${{ secrets.SIGNING_ALIAS_PASSWORD }}  
+      env:
+        BUILD_TOOLS_VERSION: "30.0.2"
     - name: Upload
-      uses: actions/upload-artifact@v1
+      uses: actions/upload-artifact@v2
       with:
         name: apk_final
-        path: ${{steps.sign_apk.outputs.signedReleaseFile}}
+        path: app/build/outputs/apk/release/*.apk
