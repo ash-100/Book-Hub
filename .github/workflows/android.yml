@@ -29,3 +29,18 @@ jobs:
     - name: Build with Gradle
       run: ./gradlew build
     - run: echo "Build status - ${{job.status}}"
+
+    - name: Sign APK
+    - id: sign_apk
+    - uses: r0adkll/sign-android-release@v1
+      with:
+        releaseDirectory: app/build/outputs/apk/release
+        signingKeyBase64: ${{ secrets.SIGNING_KEYSTORE }}
+        alias: ${{ secrets.SIGNING_ALIAS }}
+        keyStorePassword: ${{ secrets.SIGNING_KEYSTORE_PASSWORD }}
+        keyPassword: ${{ secrets.SIGNING_ALIAS_PASSWORD }}  
+    - name: Upload
+      uses: actions/upload-artifact@v1
+      with:
+        name: apk_final
+        path: ${{steps.sign_apk.outputs.signedReleaseFile}}
