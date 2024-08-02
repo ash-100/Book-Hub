@@ -7,44 +7,36 @@ on:
     branches: [ "master" ]
 
 jobs:
-  build:
-    name: Build
+  apk:
+    name: Build Release signed APK
     runs-on: ubuntu-latest
-
     steps:
-    - run: echo "Triggered by ${{github.event_name}} event"
-    - uses: actions/checkout@v4
-    - run: echo "The ${{github.repository}} repo has been cloned"
-    - run: echo "Setting up JDK"
-    - name: set up JDK 11
-      uses: actions/setup-java@v4
-      with:
-        java-version: '11'
-        distribution: 'temurin'
-        cache: gradle
-    - run : echo "The workflow is ready"
-    - name: Grant execute permission for gradlew
-      run: chmod +x gradlew
-    - run : echo "Building apk"
-    - name: Build with Gradle
-      run: ./gradlew assembleRelease
-    - run: echo "Build status - ${{job.status}}"
-
-    
-
-    - name: Sign APK
-      id: sign_apk
-      uses: r0adkll/sign-android-release@v1
-      with:
-        releaseDirectory: app/build/outputs/apk/release
-        signingKeyBase64: ${{ secrets.SIGNING_KEYSTORE }}
-        alias: ${{ secrets.SIGNING_ALIAS }}
-        keyStorePassword: ${{ secrets.SIGNING_KEYSTORE_PASSWORD }}
-        keyPassword: ${{ secrets.SIGNING_ALIAS_PASSWORD }}  
-      env:
-        BUILD_TOOLS_VERSION: "30.0.2"
-    - name: Upload
-      uses: actions/upload-artifact@v2
-      with:
-        name: apk_final
-        path: app/build/outputs/apk/release/*.apk
+      - name: Checkout the code
+        uses: actions/checkout@v2
+  
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: '17'
+  
+      - name: Build Release APK
+        run: ./gradlew assembleRelease
+  
+      - name: Sign APK
+        uses: r0adkll/sign-android-release@v1
+        id: sign_app
+        with:
+          releaseDirectory: app/build/outputs/apk/release
+          signingKeyBase64: ${{ secrets.SIGNING_KEY }}
+          alias: ${{ secrets.KEY_ALIAS }}
+          keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
+          keyPassword: ${{ secrets.KEY_PASSWORD }}
+        env:
+          BUILD_TOOLS_VERSION: "30.0.2"
+  
+      - name: Upload Signed APK
+        uses: actions/upload-artifact@v2
+        with:
+          name: sample-app-signed  # Artifact Name
+          path: app/build/outputs/apk/release/*.apk
